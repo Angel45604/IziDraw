@@ -13,112 +13,71 @@ class DrawingView @JvmOverloads constructor(
 ) : View(context, attrs, defStyleAttr) {
 
 
-    var paint: Paint = Paint()
-    var mPath: Path = Path()
-    var circlePath: Path = Path()
-    var mCanvas: Canvas = Canvas()
-    lateinit var mBitmap: Bitmap
-    var mBitmapPaint: Paint
-    var circlePaint: Paint
-    init {
-        var display = getContext().resources.displayMetrics
-        var width = display.widthPixels
-        var height = display.heightPixels
-        var paint: Paint = Paint()
-        mBitmapPaint = Paint(Paint.DITHER_FLAG)
+    var paint: Paint
+    var path2: Path
+    var bitmap: Bitmap
+    var canvas: Canvas
+    var U: Int
+    //var width: Int
+    //var height: Int
 
-        circlePaint = Paint()
-        circlePaint.isAntiAlias = true
-        circlePaint.color = Color.BLUE
-        circlePaint.style = Paint.Style.STROKE
-        circlePaint.strokeJoin = Paint.Join.MITER
-        circlePaint.strokeWidth = 4F
-        paint.isAntiAlias = true
+    init {
+        var width = getContext().resources.displayMetrics.widthPixels
+        var height = getContext().resources.displayMetrics.heightPixels
+        U = width/20
+        paint = Paint()
         paint.isDither = true
-        paint.color = Color.GREEN
+        paint.color = Color.BLACK
         paint.style = Paint.Style.STROKE
         paint.strokeJoin = Paint.Join.ROUND
         paint.strokeCap = Paint.Cap.ROUND
         paint.strokeWidth = 12F
-
-    }
-
-    override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
-        super.onSizeChanged(w, h, oldw, oldh)
-        mBitmap = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888)
-        mCanvas = Canvas(mBitmap)
-    }
-
-
-    fun start() {
-
-    }
-
-    fun update() {
+        path2 = Path()
+        bitmap = Bitmap.createBitmap(820, 480, Bitmap.Config.ARGB_4444)
+        canvas = Canvas(bitmap)
 
     }
 
     override fun onDraw(canvas: Canvas?) {
         super.onDraw(canvas)
-        if (canvas != null) {
-        canvas.drawBitmap(mBitmap, 0F, 0F, mBitmapPaint)
-        canvas.drawPath(mPath, paint)
-        canvas.drawPath(circlePath, circlePaint)
+        paint.color = Color.GRAY
+        paint.strokeWidth = 1F
+        for(i in 0..width step U) {
+            canvas?.drawLine(i.toFloat(), 0F, i.toFloat(), height.toFloat(), paint)
         }
-    }
-
-    var mX: Float = 0F
-    var mY: Float = 0F
-    val TOUCHTOLERANCE: Float = 4F
-
-    private fun touch_start(x: Float, y: Float) {
-        mPath.reset()
-        mPath.moveTo(x, y)
-        mX = x
-        mY = y
-    }
-
-    private fun touch_move(x: Float, Y: Float) {
-        var dx: Float = Math.abs(x - mX)
-        var dy: Float = Math.abs(y - mY)
-        if(dx >= TOUCHTOLERANCE || dy >= TOUCHTOLERANCE) {
-            mPath.quadTo(mX, mY, (x + mX)/2, (y + mY)/2)
-            mX = x
-            mY = y
-
-            circlePath.reset()
-            circlePath.addCircle(mX, mY, 30F, Path.Direction.CW)
+        for(i in 0..height step U) {
+            canvas?.drawLine(0F, i.toFloat(), width.toFloat(), i.toFloat(),paint)
         }
-    }
-
-    private fun touch_up() {
-        mPath.lineTo(mX, mY)
-        circlePath.reset()
-
-        mCanvas.drawPath(mPath, paint)
-
-        mPath.reset()
+        paint.color = Color.BLACK
+        paint.strokeWidth = 12F
+        canvas?.drawPath(path2, paint)
+        invalidate()
     }
 
     override fun onTouchEvent(e: MotionEvent?): Boolean {
-        Log.d("TAG", "${e?.x} ${e?.y}")
-        var x: Float? = e?.x
-        var y: Float? = e?.y
-        val DOWN = MotionEvent.ACTION_DOWN
+        canvas.drawPath(path2, paint)
+        var prevX = e?.x
+        var prevY = e?.y
+
         when(e?.action) {
             MotionEvent.ACTION_DOWN -> {
-                touch_start(x!!, y!!)
-                invalidate()
+                path2.moveTo(e?.x, e?.y)
+                prevX = e?.x
+                prevY = e?.y
+                //path2.lineTo(e?.x, e?.y)
             }
             MotionEvent.ACTION_MOVE -> {
-                touch_move(x!!, y!!)
-                invalidate()
+                //path2.quadTo(prevX!!, prevY!!, e?.x, e?.y)
+                //path2.lineTo(e?.x, e?.y)
+
             }
             MotionEvent.ACTION_UP -> {
-                touch_up()
-                invalidate()
+                path2.lineTo(e?.x, e?.y)
+                //path2.reset()
             }
         }
+        invalidate()
         return true
     }
+
 }
